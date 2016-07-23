@@ -30,6 +30,8 @@ type Logger struct {
 	mu MutexWrap
 	// Reusable empty entry
 	entryPool sync.Pool
+	// Whether the caller should be logged or not
+	ShowCaller bool
 }
 
 type MutexWrap struct {
@@ -67,10 +69,11 @@ func (mw *MutexWrap) Disable() {
 // It's recommended to make this a global instance called `log`.
 func New() *Logger {
 	return &Logger{
-		Out:       os.Stderr,
-		Formatter: new(TextFormatter),
-		Hooks:     make(LevelHooks),
-		Level:     InfoLevel,
+		Out:        os.Stderr,
+		Formatter:  new(TextFormatter),
+		Hooks:      make(LevelHooks),
+		Level:      InfoLevel,
+		ShowCaller: true,
 	}
 }
 
