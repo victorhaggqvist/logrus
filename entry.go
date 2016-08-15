@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
@@ -44,8 +45,9 @@ type Entry struct {
 	// When formatter is called in entry.log(), an Buffer may be set to entry
 	Buffer *bytes.Buffer
 
-	// The number of stack frmes to skip for finding remote caller, set to -1 to disable
-	RemoteCallerSkipDepth int
+	// The number extra of stack frmes to skip for finding remote caller
+	// Usefull to bump if you wrap the logger to have it report the expected caller not the wrapped call
+	RemoteCallerDepthOffset int
 
 	// Full path to remote caller with line number if available and enabled
 	RemoteCaller string
@@ -56,7 +58,6 @@ func NewEntry(logger *Logger) *Entry {
 		Logger: logger,
 		// Default is three fields, give a little extra room
 		Data: make(Fields, 5),
-		RemoteCallerSkipDepth: 5,
 	}
 }
 
@@ -90,17 +91,49 @@ func (entry *Entry) WithFields(fields Fields) *Entry {
 	for k, v := range fields {
 		data[k] = v
 	}
-	return &Entry{Logger: entry.Logger, Data: data, RemoteCallerSkipDepth: 3}
+	return &Entry{Logger: entry.Logger, Data: data, RemoteCallerDepthOffset: entry.RemoteCallerDepthOffset}
 }
 
-func caller(depth int) string {
-	_, file, line, ok := runtime.Caller(depth)
+func caller(depthOffset int) string {
+	// dymanic stack discovery based on the konwn part of the stack, aka the internal calls of logrus
+	// traverses the stack until it hits something that is outside of logrus
+	// an optional offset can be applied to the discovered index to account for wrappers
+	depth := 0
+	var out []string
 
-	if !ok {
+	stop := false
+	for !stop {
+		_, file, line, ok := runtime.Caller(depth)
+		// fmt.Printf("depth: %d\n", depth)
+		if !ok {
+			stop = true
+		} else {
+			callLine := fmt.Sprint(file, ":", line)
+			// fmt.Println(callLine)
+			out = append(out, callLine)
+			depth = depth + 1
+		}
+	}
+
+	outIndex := -1
+	for index, line := range out {
+		if !strings.Contains(line, "Sirupsen/logrus/entry.go") {
+			outIndex = index - 1
+			break
+		}
+	}
+
+	// fmt.Printf("outIndex: %d\n", outIndex)
+	if depthOffset > 0 {
+		outIndex = outIndex + depthOffset
+	}
+	// fmt.Printf("used outIndex: %d\n", outIndex)
+
+	if outIndex > len(out)-1 {
 		return "???:?"
 	}
 
-	return fmt.Sprint(file, ":", line)
+	return out[outIndex]
 }
 
 // This function is not declared with a pointer value because otherwise
@@ -111,8 +144,8 @@ func (entry Entry) log(level Level, msg string) {
 	entry.Level = level
 	entry.Message = msg
 
-	if entry.Logger.ShowCaller && entry.RemoteCallerSkipDepth > 0 {
-		entry.RemoteCaller = caller(entry.RemoteCallerSkipDepth)
+	if entry.Logger.ShowCaller {
+		entry.RemoteCaller = caller(entry.RemoteCallerDepthOffset)
 	}
 
 	if err := entry.Logger.Hooks.Fire(level, &entry); err != nil {
