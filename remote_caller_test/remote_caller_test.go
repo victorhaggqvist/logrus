@@ -169,3 +169,28 @@ func TestNoCaller(t *testing.T) {
 	}
 
 }
+
+func TestWrapCaller(t *testing.T) {
+	var buff bytes.Buffer
+	var fields log.Fields
+
+	l := log.New()
+	l.Out = &buff
+	l.Formatter = &log.JSONFormatter{}
+	wrap := l.WithField("wrapped", "yes")
+	wrap.RemoteCallerDepthOffset = 1
+	w := wrapLogger{Entry: wrap}
+
+	w.wraplog("baz")
+
+	err := json.Unmarshal(buff.Bytes(), &fields)
+	if err != nil {
+		t.Errorf("should have decoded message, got: %s", err)
+	}
+
+	caller := fields["remote_caller"].(string)
+	t.Logf("got caller: %s", caller)
+	if !expectedFilePattern.MatchString(caller) {
+		t.Errorf("found unexpected caller: %s", caller)
+	}
+}

@@ -133,7 +133,7 @@ func caller(depthOffset int) string {
 
 	// fmt.Printf("outIndex: %d\n", outIndex)
 	if depthOffset > 0 {
-		outIndex = outIndex + depthOffset
+		outIndex = outIndex - depthOffset
 	}
 	// fmt.Printf("used outIndex: %d\n", outIndex)
 
