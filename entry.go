@@ -115,9 +115,17 @@ func caller(depthOffset int) string {
 		}
 	}
 
-	outIndex := -1
+	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
+		out[i], out[j] = out[j], out[i]
+	}
+	outIndex := 0
+	// fmt.Printf("%+v\n", out)
+
 	for index, line := range out {
-		if !strings.Contains(line, "Sirupsen/logrus/entry.go") {
+		// fmt.Println(line)
+		filename := strings.Split(line, ":")
+		// fmt.Printf("%+v\n", filename)
+		if strings.HasSuffix(filename[0], "Sirupsen/logrus/exported.go") || strings.HasSuffix(filename[0], "Sirupsen/logrus/entry.go") {
 			outIndex = index - 1
 			break
 		}
@@ -129,11 +137,11 @@ func caller(depthOffset int) string {
 	}
 	// fmt.Printf("used outIndex: %d\n", outIndex)
 
-	if outIndex > len(out)-1 {
-		return "???:?"
+	if outIndex < len(out)-1 || outIndex > -1 {
+		return out[outIndex]
 	}
 
-	return out[outIndex]
+	return "???:?"
 }
 
 // This function is not declared with a pointer value because otherwise
