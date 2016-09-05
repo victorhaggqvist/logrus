@@ -19,7 +19,6 @@ func TestVanilla(t *testing.T) {
 
 	log.SetOutput(&buff)
 	log.SetFormatter(&log.JSONFormatter{})
-
 	log.Info("dummy")
 
 	err := json.Unmarshal(buff.Bytes(), &fields)
@@ -27,7 +26,7 @@ func TestVanilla(t *testing.T) {
 		t.Errorf("should have decoded message, got: %s", err)
 	}
 
-	caller := fields["caller"].(string)
+	caller := fields["remote_caller"].(string)
 	t.Logf("got caller: %s", caller)
 	if !expectedFilePattern.MatchString(caller) {
 		t.Errorf("found unexpected caller: %s", caller)
@@ -48,7 +47,7 @@ func TestChainedField(t *testing.T) {
 		t.Errorf("should have decoded message, got: %s", err)
 	}
 
-	caller := fields["caller"].(string)
+	caller := fields["remote_caller"].(string)
 	t.Logf("got caller: %s", caller)
 	if !expectedFilePattern.MatchString(caller) {
 		t.Errorf("found unexpected caller: %s", caller)
@@ -72,7 +71,7 @@ func TestReusedField(t *testing.T) {
 		t.Errorf("should have decoded message, got: %s", err)
 	}
 
-	caller := fields["caller"].(string)
+	caller := fields["remote_caller"].(string)
 	t.Logf("got caller: %s", caller)
 	if !expectedFilePattern.MatchString(caller) {
 		t.Errorf("found unexpected caller: %s", caller)
@@ -96,7 +95,7 @@ func TestReusedMultipleField(t *testing.T) {
 		t.Errorf("should have decoded message, got: %s", err)
 	}
 
-	caller := fields["caller"].(string)
+	caller := fields["remote_caller"].(string)
 	t.Logf("got caller: %s", caller)
 	if !expectedFilePattern.MatchString(caller) {
 		t.Errorf("found unexpected caller: %s", caller)
@@ -120,7 +119,7 @@ func TestMultipleChanins(t *testing.T) {
 		t.Errorf("should have decoded message, got: %s", err)
 	}
 
-	caller := fields["caller"].(string)
+	caller := fields["remote_caller"].(string)
 	t.Logf("got caller: %s", caller)
 	if !expectedFilePattern.MatchString(caller) {
 		t.Errorf("found unexpected caller: %s", caller)
@@ -142,7 +141,7 @@ func TestErrorField(t *testing.T) {
 		t.Errorf("should have decoded message, got: %s", err)
 	}
 
-	caller := fields["caller"].(string)
+	caller := fields["remote_caller"].(string)
 	t.Logf("got caller: %s", caller)
 	if !expectedFilePattern.MatchString(caller) {
 		t.Errorf("found unexpected caller: %s", caller)

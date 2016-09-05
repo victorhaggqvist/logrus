@@ -65,10 +65,9 @@ func (f *TextFormatter) Format(entry *Entry) ([]byte, error) {
 		b = &bytes.Buffer{}
 	}
 
-	hasRemoteCaller := entry.RemoteCaller != ""
-	prefixFieldClashes(entry.Data, hasRemoteCaller)
-	if hasRemoteCaller {
-		entry.Data["caller"] = formatRemoteCaller(entry.RemoteCaller)
+	prefixFieldClashes(entry.Data)
+	if entry.RemoteCaller != "" {
+		entry.Data["remote_caller"] = formatRemoteCaller(entry.RemoteCaller)
 	}
 
 	var keys []string = make([]string, 0, len(entry.Data))

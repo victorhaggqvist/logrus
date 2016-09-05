@@ -38,7 +38,7 @@ type Formatter interface {
 //
 // It's not exported because it's still using Data in an opinionated way. It's to
 // avoid code duplication between the two default formatters.
-func prefixFieldClashes(data Fields, hasRemoteCaller bool) {
+func prefixFieldClashes(data Fields) {
 	if t, ok := data["time"]; ok {
 		data["fields.time"] = t
 	}
@@ -49,12 +49,6 @@ func prefixFieldClashes(data Fields, hasRemoteCaller bool) {
 
 	if l, ok := data["level"]; ok {
 		data["fields.level"] = l
-	}
-
-	if hasRemoteCaller {
-		if c, ok := data["caller"]; ok {
-			data["fields.caller"] = c
-		}
 	}
 }
 

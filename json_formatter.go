@@ -22,8 +22,8 @@ func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 			data[k] = v
 		}
 	}
-	hasRemoteCaller := entry.RemoteCaller != ""
-	prefixFieldClashes(data, hasRemoteCaller)
+
+	prefixFieldClashes(data)
 
 	timestampFormat := f.TimestampFormat
 	if timestampFormat == "" {
@@ -34,8 +34,8 @@ func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 	data["msg"] = entry.Message
 	data["level"] = entry.Level.String()
 
-	if hasRemoteCaller {
-		data["caller"] = formatRemoteCaller(entry.RemoteCaller)
+	if entry.RemoteCaller != "" {
+		data["remote_caller"] = formatRemoteCaller(entry.RemoteCaller)
 	}
 
 	serialized, err := json.Marshal(data)
